@@ -13,6 +13,7 @@ goog.require('goog.math');
  * @param {number} fraction Fraction.
  * @param {Array.<number>=} opt_dest Destination.
  * @return {Array.<number>} Destination.
+ * @todo api
  */
 ol.geom.flat.interpolate.lineString =
     function(flatCoordinates, offset, end, stride, fraction, opt_dest) {

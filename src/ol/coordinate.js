@@ -106,12 +106,12 @@ ol.coordinate.createStringXY = function(opt_fractionDigits) {
 
 
 /**
- * @private
  * @param {number} degrees Degrees.
  * @param {string} hemispheres Hemispheres.
  * @return {string} String.
+ * @todo api
  */
-ol.coordinate.degreesToStringHDMS_ = function(degrees, hemispheres) {
+ol.coordinate.degreesToStringHDMS = function(degrees, hemispheres) {
   var normalizedDegrees = goog.math.modulo(degrees + 180, 360) - 180;
   var x = Math.abs(Math.round(3600 * normalizedDegrees));
   return Math.floor(x / 3600) + '\u00b0 ' +
@@ -240,8 +240,8 @@ ol.coordinate.squaredDistanceToSegment = function(coordinate, segment) {
  */
 ol.coordinate.toStringHDMS = function(coordinate) {
   if (goog.isDef(coordinate)) {
-    return ol.coordinate.degreesToStringHDMS_(coordinate[1], 'NS') + ' ' +
-        ol.coordinate.degreesToStringHDMS_(coordinate[0], 'EW');
+    return ol.coordinate.degreesToStringHDMS(coordinate[1], 'NS') + ' ' +
+        ol.coordinate.degreesToStringHDMS(coordinate[0], 'EW');
   } else {
     return '';
   }

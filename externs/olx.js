@@ -99,6 +99,36 @@ olx.GeolocationOptions.prototype.projection;
 
 
 /**
+ * @typedef {{map: (ol.Map|undefined),
+ *     projection: ol.proj.ProjectionLike,
+ *     targetSize: (number|undefined)}}
+ */
+olx.GraticuleOptions;
+
+
+/**
+ * Reference to an `ol.Map` object.
+ * @type {ol.Map|undefined}
+ */
+olx.GraticuleOptions.prototype.map;
+
+
+/**
+ * The projection to use for the graticule.
+ * @type {ol.proj.ProjectionLike}
+ */
+olx.GraticuleOptions.prototype.projection;
+
+
+/**
+ * The target size of the graticule cells, in pixels. Default
+ * value is 100 pixels.
+ * @type {number|undefined}
+ */
+olx.GraticuleOptions.prototype.targetSize;
+
+
+/**
  * Object literal with config options for the map.
  * @typedef {{controls: (ol.Collection|Array.<ol.control.Control>|undefined),
  *     deviceOptions: (olx.DeviceOptions|undefined),
@@ -274,7 +304,11 @@ olx.OverlayOptions.prototype.offsetY;
  * Object literal with config options for the Proj4js projection.
  * @typedef {{code: string,
  *     extent: (ol.Extent|undefined),
- *     global: (boolean|undefined)}}
+ *     global: (boolean|undefined),
+ *     maxLat: (number|undefined),
+ *     maxLon: (number|undefined),
+ *     minLat: (number|undefined),
+ *     minLon: (number|undefined)}}
  * @todo api
  */
 olx.Proj4jsProjectionOptions;
@@ -302,12 +336,44 @@ olx.Proj4jsProjectionOptions.prototype.global;
 
 
 /**
+ * Maximum latitude value for this projection.
+ * @type {number|undefined}
+ */
+olx.Proj4jsProjectionOptions.prototype.maxLat;
+
+
+/**
+ * Maximum longitute value for this projection.
+ * @type {number|undefined}
+ */
+olx.Proj4jsProjectionOptions.prototype.maxLon;
+
+
+/**
+ * Minimum latitude value for this projection.
+ * @type {number|undefined}
+ */
+olx.Proj4jsProjectionOptions.prototype.minLat;
+
+
+/**
+ * Minimum longitude value for this projection.
+ * @type {number|undefined}
+ */
+olx.Proj4jsProjectionOptions.prototype.minLon;
+
+
+/**
  * Object literal with config options for the projection.
  * @typedef {{code: string,
  *     units: (ol.proj.Units|string),
  *     extent: (ol.Extent|undefined),
  *     axisOrientation: (string|undefined),
- *     global: (boolean|undefined)}}
+ *     global: (boolean|undefined),
+ *     maxLat: (number|undefined),
+ *     maxLon: (number|undefined),
+ *     minLat: (number|undefined),
+ *     minLon: (number|undefined)}}
  * @todo api
  */
 olx.ProjectionOptions;
@@ -346,6 +412,34 @@ olx.ProjectionOptions.prototype.axisOrientation;
  * @type {boolean|undefined}
  */
 olx.ProjectionOptions.prototype.global;
+
+
+/**
+ * Maximum latitude value for this projection.
+ * @type {number|undefined}
+ */
+olx.ProjectionOptions.prototype.maxLat;
+
+
+/**
+ * Maximum longitute value for this projection.
+ * @type {number|undefined}
+ */
+olx.ProjectionOptions.prototype.maxLon;
+
+
+/**
+ * Minimum latitude value for this projection.
+ * @type {number|undefined}
+ */
+olx.ProjectionOptions.prototype.minLat;
+
+
+/**
+ * Minimum longitude value for this projection.
+ * @type {number|undefined}
+ */
+olx.ProjectionOptions.prototype.minLon;
 
 
 /**
@@ -4593,6 +4687,13 @@ olx.style.IconOptions.prototype.rotateWithView;
 
 
 /**
+ * Whether to rotate the text with the view. Default is `false`.
+ * @type {boolean|undefined}
+ */
+olx.style.TextOptions.prototype.rotateWithView;
+
+
+/**
  * Rotation.
  * @type {number|undefined}
  */
@@ -4672,6 +4773,7 @@ olx.style.StrokeOptions.prototype.width;
  *     offsetX: (number|undefined),
  *     offsetY: (number|undefined),
  *     scale: (number|undefined),
+ *     rotateWithView: (boolean|undefined),
  *     rotation: (number|undefined),
  *     text: (string|undefined),
  *     textAlign: (string|undefined),

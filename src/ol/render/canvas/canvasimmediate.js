@@ -190,6 +190,12 @@ ol.render.canvas.Immediate =
 
   /**
    * @private
+   * @type {boolean}
+   */
+  this.textRotateWithView_ = false;
+
+  /**
+   * @private
    * @type {number}
    */
   this.textRotation_ = 0;
@@ -318,12 +324,16 @@ ol.render.canvas.Immediate.prototype.drawText_ =
   var pixelCoordinates = ol.geom.flat.transform.transform2D(
       flatCoordinates, stride, this.transform_, this.pixelCoordinates_);
   var context = this.context_;
+  var rotation = this.textRotation_;
+  if (this.textRotateWithView_) {
+    rotation += this.viewRotation_;
+  }
   for (; offset < end; offset += stride) {
     var x = pixelCoordinates[offset] + this.textOffsetX_;
     var y = pixelCoordinates[offset + 1] + this.textOffsetY_;
-    if (this.textRotation_ !== 0 || this.textScale_ != 1) {
+    if (rotation !== 0 || this.textScale_ != 1) {
       var localTransform = ol.vec.Mat4.makeTransform2D(this.tmpLocalTransform_,
-          x, y, this.textScale_, this.textScale_, this.textRotation_, -x, -y);
+          x, y, this.textScale_, this.textScale_, rotation, -x, -y);
       context.setTransform(
           goog.vec.Mat4.getElement(localTransform, 0, 0),
           goog.vec.Mat4.getElement(localTransform, 1, 0),
@@ -339,7 +349,7 @@ ol.render.canvas.Immediate.prototype.drawText_ =
       context.fillText(this.text_, x, y);
     }
   }
-  if (this.textRotation_ !== 0 || this.textScale_ != 1) {
+  if (rotation !== 0 || this.textScale_ != 1) {
     context.setTransform(1, 0, 0, 1, 0, 0);
   }
 };
@@ -975,6 +985,7 @@ ol.render.canvas.Immediate.prototype.setTextStyle = function(textStyle) {
         goog.isDef(textOffsetX) ? (this.pixelRatio_ * textOffsetX) : 0;
     this.textOffsetY_ =
         goog.isDef(textOffsetY) ? (this.pixelRatio_ * textOffsetY) : 0;
+    this.textRotateWithView_ = textStyle.getRotateWithView();
     this.textRotation_ = goog.isDef(textRotation) ? textRotation : 0;
     this.textScale_ = this.pixelRatio_ * (goog.isDef(textScale) ?
         textScale : 1);

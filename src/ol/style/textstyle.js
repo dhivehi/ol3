@@ -19,6 +19,13 @@ ol.style.Text = function(opt_options) {
 
   /**
    * @private
+   * @type {boolean}
+   */
+  this.rotateWithView_ = goog.isDef(options.rotateWithView) ?
+      options.rotateWithView : false;
+
+  /**
+   * @private
    * @type {number|undefined}
    */
   this.rotation_ = options.rotation;
@@ -104,6 +111,15 @@ ol.style.Text.prototype.getOffsetY = function() {
  */
 ol.style.Text.prototype.getFill = function() {
   return this.fill_;
+};
+
+
+/**
+ * @return {boolean} Rotate with view?.
+ * @todo api
+ */
+ol.style.Text.prototype.getRotateWithView = function() {
+  return this.rotateWithView_;
 };
 
 

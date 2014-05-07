@@ -51,6 +51,48 @@ ol.math.sech = function(x) {
 
 
 /**
+ * @param {number} x11 Start point x coordinate of segment 1.
+ * @param {number} y11 Start point y coordinate of segment 1.
+ * @param {number} x12 End point x coordinate of segment 1.
+ * @param {number} y12 End point y coordinate of segment 1.
+ * @param {number} x21 Start point x coordinate of segment 2.
+ * @param {number} y21 Start point y coordinate of segment 2.
+ * @param {number} x22 End point x coordinate of segment 2.
+ * @param {number} y22 End point y coordinate of segment 2.
+ * @return {Array.<number>} The intersection point. `[]` if there is no
+ *     intersection. `[Infinity]` if the segments are coincident.
+ */
+ol.math.segmentSegmentIntersection =
+    function(x11, y11, x12, y12, x21, y21, x22, y22) {
+  var x11_21 = x11 - x21;
+  var y11_21 = y11 - y21;
+  var x12_11 = x12 - x11;
+  var y12_11 = y12 - y11;
+  var x22_21 = x22 - x21;
+  var y22_21 = y22 - y21;
+  var d = (y22_21 * x12_11) - (x22_21 * y12_11);
+  var n1 = (x22_21 * y11_21) - (y22_21 * x11_21);
+  var n2 = (x12_11 * y11_21) - (y12_11 * x11_21);
+  if (d === 0) {
+    // parallel
+    if (n1 === 0 && n2 === 0) {
+      // coincident
+      return [Infinity];
+    }
+  } else {
+    var along1 = n1 / d;
+    var along2 = n2 / d;
+    if (along1 >= 0 && along1 <= 1 && along2 >= 0 && along2 <= 1) {
+      var x = x11 + (along1 * x12_11);
+      var y = y11 + (along1 * y12_11);
+      return [x, y];
+    }
+  }
+  return [];
+};
+
+
+/**
  * @param {number} x X.
  * @return {number} Hyperbolic sine of x.
  */
