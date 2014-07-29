@@ -229,6 +229,18 @@ ol.SIMPLIFY_TOLERANCE = 0.5;
 
 
 /**
+ * @define {number} Maximum tilt angle (in radians) for a view.
+ */
+ol.VIEW_MAX_TILT = Math.PI / 4;
+
+
+/**
+ * @define {number} Minimum pixel distance from the eye to the screen.
+ */
+ol.VIEW_MIN_PERSPECTIVE = 500;
+
+
+/**
  * @define {number} Texture cache high water mark.
  */
 ol.WEBGL_TEXTURE_CACHE_HIGH_WATER_MARK = 1024;

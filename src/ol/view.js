@@ -24,8 +24,10 @@ goog.require('ol.proj.Units');
  */
 ol.ViewProperty = {
   CENTER: 'center',
+  PERSPECTIVE: 'perspective',
   RESOLUTION: 'resolution',
-  ROTATION: 'rotation'
+  ROTATION: 'rotation',
+  TILT: 'tilt'
 };
 
 
@@ -160,6 +162,10 @@ ol.View = function(opt_options) {
   }
   properties[ol.ViewProperty.ROTATION] =
       goog.isDef(options.rotation) ? options.rotation : 0;
+  properties[ol.ViewProperty.PERSPECTIVE] = goog.isDef(options.perspective) ?
+      options.perspective : 0;
+  properties[ol.ViewProperty.TILT] = goog.isDef(options.tilt) ?
+      options.tilt : 0;
   this.setProperties(properties);
 };
 goog.inherits(ol.View, ol.Object);
@@ -287,6 +293,21 @@ ol.View.prototype.calculateExtent = function(size) {
 
 
 /**
+ * @return {number|undefined} The perspective of the view.
+ * @observable
+ * @api
+ */
+ol.View.prototype.getPerspective = function() {
+  return /** @type {number|undefined} */ (
+      this.get(ol.ViewProperty.PERSPECTIVE));
+};
+goog.exportProperty(
+    ol.View.prototype,
+    'getPerspective',
+    ol.View.prototype.getPerspective);
+
+
+/**
  * @return {ol.proj.Projection} The projection of the view.
  * @api stable
  */
@@ -365,6 +386,20 @@ goog.exportProperty(
 
 
 /**
+ * @return {number|undefined} The tilt of the view.
+ * @observable
+ * @api
+ */
+ol.View.prototype.getTilt = function() {
+  return /** @type {number|undefined} */ (this.get(ol.ViewProperty.TILT));
+};
+goog.exportProperty(
+    ol.View.prototype,
+    'getTilt',
+    ol.View.prototype.getTilt);
+
+
+/**
  * Return a function that returns a resolution for a value between
  * 0 and 1. Exponential scaling is assumed.
  * @param {number=} opt_power Power.
@@ -395,14 +430,19 @@ ol.View.prototype.getValueForResolutionFunction = function(opt_power) {
 ol.View.prototype.getState = function() {
   goog.asserts.assert(this.isDef());
   var center = /** @type {ol.Coordinate} */ (this.getCenter());
+  var perspective = Math.max(ol.VIEW_MIN_PERSPECTIVE,
+      this.getPerspective() || 0);
   var projection = this.getProjection();
   var resolution = /** @type {number} */ (this.getResolution());
   var rotation = this.getRotation();
+  var tilt = Math.min(ol.VIEW_MAX_TILT, this.getTilt() || 0);
   return /** @type {olx.ViewState} */ ({
     center: center.slice(),
+    perspective: perspective,
     projection: goog.isDef(projection) ? projection : null,
     resolution: resolution,
-    rotation: rotation
+    rotation: rotation,
+    tilt: tilt
   });
 };
 
@@ -610,6 +650,22 @@ ol.View.prototype.setHint = function(hint, delta) {
 
 
 /**
+ * Set the perspective for this view.
+ * @param {number|undefined} perspective The distance in pixels from the screen
+ *     to the eye.
+ * @observable
+ * @api
+ */
+ol.View.prototype.setPerspective = function(perspective) {
+  this.set(ol.ViewProperty.PERSPECTIVE, perspective);
+};
+goog.exportProperty(
+    ol.View.prototype,
+    'setPerspective',
+    ol.View.prototype.setPerspective);
+
+
+/**
  * Set the resolution for this view.
  * @param {number|undefined} resolution The resolution of the view.
  * @observable
@@ -637,6 +693,21 @@ goog.exportProperty(
     ol.View.prototype,
     'setRotation',
     ol.View.prototype.setRotation);
+
+
+/**
+ * Set the tilt for this view.
+ * @param {number|undefined} tilt The tilt angle in radians.
+ * @observable
+ * @api
+ */
+ol.View.prototype.setTilt = function(tilt) {
+  this.set(ol.ViewProperty.TILT, tilt);
+};
+goog.exportProperty(
+    ol.View.prototype,
+    'setTilt',
+    ol.View.prototype.setTilt);
 
 
 /**

@@ -6566,9 +6566,11 @@ olx.FrameState.prototype.viewState;
 
 /**
  * @typedef {{center: ol.Coordinate,
+ *     perspective: number,
  *     projection: ol.proj.Projection,
  *     resolution: number,
- *     rotation: number}}
+ *     rotation: number,
+ *     tilt: number}}
  * @api
  */
 olx.ViewState;
@@ -6579,6 +6581,13 @@ olx.ViewState;
  * @api
  */
 olx.ViewState.prototype.center;
+
+
+/**
+ * @type {number}
+ * @api
+ */
+olx.ViewState.prototype.perspective;
 
 
 /**
@@ -6600,6 +6609,13 @@ olx.ViewState.prototype.resolution;
  * @api
  */
 olx.ViewState.prototype.rotation;
+
+
+/**
+ * @type {number}
+ * @api
+ */
+olx.ViewState.prototype.tilt;
 
 
 /**
