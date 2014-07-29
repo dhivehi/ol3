@@ -447,10 +447,12 @@ olx.ProjectionOptions.prototype.worldExtent;
  *     maxResolution: (number|undefined),
  *     minZoom: (number|undefined),
  *     maxZoom: (number|undefined),
+ *     perspective: (number|undefined),
  *     projection: ol.proj.ProjectionLike,
  *     resolution: (number|undefined),
  *     resolutions: (Array.<number>|undefined),
  *     rotation: (number|undefined),
+ *     tilt: (number|undefined),
  *     zoom: (number|undefined),
  *     zoomFactor: (number|undefined)}}
  * @api
@@ -547,6 +549,15 @@ olx.ViewOptions.prototype.minZoom;
 
 
 /**
+ * For tilted views, the perspective represents the distance (in pixels) of the
+ * eye from the scene.  Default is `800`.  The minimum perspective value is
+ * `500`.
+ * @type {number|undefined}
+ */
+olx.ViewOptions.prototype.perspective;
+
+
+/**
  * The projection. Default is `EPSG:3857` (Spherical Mercator).
  * @type {ol.proj.ProjectionLike}
  * @api stable
@@ -582,6 +593,15 @@ olx.ViewOptions.prototype.resolutions;
  * @api stable
  */
 olx.ViewOptions.prototype.rotation;
+
+
+/**
+ * The view tilt angle in radians (rotation about the x axis).  Default is `0`.
+ * The view may be tilted up to an angle of Math.PI / 4.  Larger values will be
+ * ignored.
+ * @type {number|undefined}
+ */
+olx.ViewOptions.prototype.tilt;
 
 
 /**
