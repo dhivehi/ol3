@@ -6,7 +6,6 @@ goog.provide('ol.renderer.webgl.TileLayer');
 goog.require('goog.array');
 goog.require('goog.asserts');
 goog.require('goog.object');
-goog.require('goog.vec.Mat4');
 goog.require('goog.vec.Vec4');
 goog.require('goog.webgl');
 goog.require('ol.TileRange');
@@ -17,6 +16,7 @@ goog.require('ol.math');
 goog.require('ol.renderer.webgl.Layer');
 goog.require('ol.renderer.webgl.tilelayer.shader');
 goog.require('ol.tilecoord');
+goog.require('ol.vec.Mat4');
 goog.require('ol.webgl.Buffer');
 
 
@@ -302,27 +302,8 @@ ol.renderer.webgl.TileLayer.prototype.prepareFrame =
   this.scheduleExpireCache(frameState, tileSource);
   this.updateLogos(frameState, tileSource);
 
-  var texCoordMatrix = this.texCoordMatrix;
-  goog.vec.Mat4.makeIdentity(texCoordMatrix);
-  goog.vec.Mat4.translate(texCoordMatrix,
-      (center[0] - framebufferExtent[0]) /
-          (framebufferExtent[2] - framebufferExtent[0]),
-      (center[1] - framebufferExtent[1]) /
-          (framebufferExtent[3] - framebufferExtent[1]),
-      0);
-  if (viewState.rotation !== 0) {
-    goog.vec.Mat4.rotateZ(texCoordMatrix, viewState.rotation);
-  }
-  goog.vec.Mat4.scale(texCoordMatrix,
-      frameState.size[0] * viewState.resolution /
-          (framebufferExtent[2] - framebufferExtent[0]),
-      frameState.size[1] * viewState.resolution /
-          (framebufferExtent[3] - framebufferExtent[1]),
-      1);
-  goog.vec.Mat4.translate(texCoordMatrix,
-      -0.5,
-      -0.5,
-      0);
+  ol.vec.Mat4.makeTransformImage(framebufferExtent, frameState.size,
+      center, viewState.resolution, -viewState.rotation, this.texCoordMatrix);
 
   return true;
 };

@@ -80,3 +80,69 @@ ol.vec.Mat4.multVec2 = function(mat, vec, resultVec) {
   resultVec[1] = m10 * x + m11 * y + m13;
   return resultVec;
 };
+
+
+/**
+ * @param {number} x0 The x coordinate of the bottom-left corner.
+ * @param {number} y0 The y coordinate of the bottom-left corner.
+ * @param {number} x1 The x coordinate of the bottom-right corner.
+ * @param {number} y1 The y coordinate of the bottom-right corner.
+ * @param {number} x2 The x coordinate of the top-right corner.
+ * @param {number} y2 The y coordinate of the top-right corner.
+ * @param {number} x3 The x coordinate of the top-left corner.
+ * @param {number} y3 The y coordinate of the top-left corner.
+ * @param {goog.vec.Mat4.Number=} opt_mat The matrix to receive the results.
+ * @return {goog.vec.Mat4.Number} The result matrix.
+ */
+ol.vec.Mat4.makeSquareToQuad =
+    function(x0, y0, x1, y1, x2, y2, x3, y3, opt_mat) {
+  if (!goog.isDef(opt_mat)) {
+    opt_mat = goog.vec.Mat4.createNumber();
+  }
+  var dx1 = x1 - x2;
+  var dy1 = y1 - y2;
+  var dx2 = x3 - x2;
+  var dy2 = y3 - y2;
+  var dx3 = x0 - x1 + x2 - x3;
+  var dy3 = y0 - y1 + y2 - y3;
+  var det = dx1 * dy2 - dx2 * dy1;
+  var a = (dx3 * dy2 - dx2 * dy3) / det;
+  var b = (dx1 * dy3 - dx3 * dy1) / det;
+  goog.vec.Mat4.setFromValues(opt_mat,
+      x1 - x0 + a * x1, y1 - y0 + a * y1, a, 0,
+      x3 - x0 + b * x3, y3 - y0 + b * y3, b, 0,
+      0, 0, 1, 0,
+      x0, y0, 0, 1);
+  return opt_mat;
+};
+
+
+/**
+ * @param {ol.Extent} extent Image extent.
+ * @param {ol.Size} size Size in pixels.
+ * @param {ol.Coordinate} center Center.
+ * @param {number} resolution Resolution.
+ * @param {number} rotation Rotation.
+ * @param {goog.vec.Mat4.Number=} opt_mat The matrix to receive the results.
+ * @return {goog.vec.Mat4.Number} The result matrix.
+ */
+ol.vec.Mat4.makeTransformImage =
+    function(extent, size, center, resolution, rotation, opt_mat) {
+  var c = Math.cos(rotation);
+  var s = Math.sin(rotation);
+  var w = extent[2] - extent[0];
+  var h = extent[3] - extent[1];
+  var sx = size[0] * resolution / w;
+  var sy = size[1] * resolution / h;
+  var dx = (center[0] - extent[0]) / w;
+  var dy = (center[1] - extent[1]) / h;
+  var x0 = -0.5 * (sx * c + sy * s) + dx;
+  var y0 = -0.5 * (sy * c - sx * s) + dy;
+  var x1 = 0.5 * (sx * c - sy * s) + dx;
+  var y1 = -0.5 * (sy * c + sx * s) + dy;
+  var x2 = 0.5 * (sx * c + sy * s) + dx;
+  var y2 = 0.5 * (sy * c - sx * s) + dy;
+  var x3 = -0.5 * (sx * c - sy * s) + dx;
+  var y3 = 0.5 * (sy * c + sx * s) + dy;
+  return ol.vec.Mat4.makeSquareToQuad(x0, y0, x1, y1, x2, y2, x3, y3, opt_mat);
+};
