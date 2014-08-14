@@ -3,7 +3,7 @@
 
 
 //! COMMON
-varying vec2 v_texCoord;
+varying vec4 v_texCoord;
 
 
 //! VERTEX
@@ -15,7 +15,7 @@ uniform mat4 u_projectionMatrix;
 
 void main(void) {
   gl_Position = u_projectionMatrix * vec4(a_position, 0., 1.);
-  v_texCoord = (u_texCoordMatrix * vec4(a_texCoord, 0., 1.)).st;
+  v_texCoord = (u_texCoordMatrix * vec4(a_texCoord, 0., 1.));
 }
 
 
@@ -24,7 +24,7 @@ uniform float u_opacity;
 uniform sampler2D u_texture;
 
 void main(void) {
-  vec4 texColor = texture2D(u_texture, v_texCoord);
+  vec4 texColor = texture2DProj(u_texture, v_texCoord);
   gl_FragColor.rgb = texColor.rgb;
   gl_FragColor.a = texColor.a * u_opacity;
 }

@@ -447,7 +447,7 @@ olx.ProjectionOptions.prototype.worldExtent;
  *     maxResolution: (number|undefined),
  *     minZoom: (number|undefined),
  *     maxZoom: (number|undefined),
- *     perspective: (number|undefined),
+ *     fov: (number|undefined),
  *     projection: ol.proj.ProjectionLike,
  *     resolution: (number|undefined),
  *     resolutions: (Array.<number>|undefined),
@@ -549,12 +549,11 @@ olx.ViewOptions.prototype.minZoom;
 
 
 /**
- * For tilted views, the perspective represents the distance (in pixels) of the
- * eye from the scene.  Default is `800`.  The minimum perspective value is
- * `500`.
+ * For tilted views, the fov is the field of view of the eye. Default is
+ * `Math.PI / 3`.
  * @type {number|undefined}
  */
-olx.ViewOptions.prototype.perspective;
+olx.ViewOptions.prototype.fov;
 
 
 /**
@@ -6566,7 +6565,7 @@ olx.FrameState.prototype.viewState;
 
 /**
  * @typedef {{center: ol.Coordinate,
- *     perspective: number,
+ *     fov: number,
  *     projection: ol.proj.Projection,
  *     resolution: number,
  *     rotation: number,
@@ -6587,7 +6586,7 @@ olx.ViewState.prototype.center;
  * @type {number}
  * @api
  */
-olx.ViewState.prototype.perspective;
+olx.ViewState.prototype.fov;
 
 
 /**

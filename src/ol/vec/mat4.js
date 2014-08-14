@@ -1,6 +1,7 @@
 goog.provide('ol.vec.Mat4');
 
 goog.require('goog.vec.Mat4');
+goog.require('goog.vec.Vec4');
 
 
 /**
@@ -109,8 +110,8 @@ ol.vec.Mat4.makeSquareToQuad =
   var a = (dx3 * dy2 - dx2 * dy3) / det;
   var b = (dx1 * dy3 - dx3 * dy1) / det;
   goog.vec.Mat4.setFromValues(opt_mat,
-      x1 - x0 + a * x1, y1 - y0 + a * y1, a, 0,
-      x3 - x0 + b * x3, y3 - y0 + b * y3, b, 0,
+      x1 - x0 + a * x1, y1 - y0 + a * y1, 0, a,
+      x3 - x0 + b * x3, y3 - y0 + b * y3, 0, b,
       0, 0, 1, 0,
       x0, y0, 0, 1);
   return opt_mat;
@@ -123,26 +124,87 @@ ol.vec.Mat4.makeSquareToQuad =
  * @param {ol.Coordinate} center Center.
  * @param {number} resolution Resolution.
  * @param {number} rotation Rotation.
- * @param {goog.vec.Mat4.Number=} opt_mat The matrix to receive the results.
- * @return {goog.vec.Mat4.Number} The result matrix.
+ * @param {number} tilt Tilt.
+ * @param {number} fov Field of view.
+ * @param {goog.vec.Mat4.Number} mat The matrix to receive the results.
  */
 ol.vec.Mat4.makeTransformImage =
-    function(extent, size, center, resolution, rotation, opt_mat) {
-  var c = Math.cos(rotation);
-  var s = Math.sin(rotation);
-  var w = extent[2] - extent[0];
-  var h = extent[3] - extent[1];
-  var sx = size[0] * resolution / w;
-  var sy = size[1] * resolution / h;
-  var dx = (center[0] - extent[0]) / w;
-  var dy = (center[1] - extent[1]) / h;
-  var x0 = -0.5 * (sx * c + sy * s) + dx;
-  var y0 = -0.5 * (sy * c - sx * s) + dy;
-  var x1 = 0.5 * (sx * c - sy * s) + dx;
-  var y1 = -0.5 * (sy * c + sx * s) + dy;
-  var x2 = 0.5 * (sx * c + sy * s) + dx;
-  var y2 = 0.5 * (sy * c - sx * s) + dy;
-  var x3 = -0.5 * (sx * c - sy * s) + dx;
-  var y3 = 0.5 * (sy * c + sx * s) + dy;
-  return ol.vec.Mat4.makeSquareToQuad(x0, y0, x1, y1, x2, y2, x3, y3, opt_mat);
+    function(extent, size, center, resolution, rotation, tilt, fov, mat) {
+  var fovOver2 = fov / 2;
+  var tanFovOver2 = Math.tan(fovOver2);
+  var w = size[0];
+  var h = size[1];
+  var cosTilt = Math.cos(tilt);
+  var sinTilt = Math.sin(tilt);
+  var tanTilt = sinTilt / cosTilt;
+  var extentW = extent[2] - extent[0];
+  var extentH = extent[3] - extent[1];
+  var sx = w * resolution / extentW;
+  var sy = h * resolution / extentH;
+  var dx = (center[0] - extent[0]) / extentW;
+  var dy = (center[1] - extent[1]) / extentH;
+
+  var x0, x1, x2, x3, y0, y1, y2, y3;
+  x0 = -0.5 * sx;
+  x1 = 0.5 * sx;
+  x2 = 0.5 * sx;
+  x3 = -0.5 * sx;
+  y0 = -0.5 * sy;
+  y1 = -0.5 * sy;
+  y2 = 0.5 * sy;
+  y3 = 0.5 * sy;
+
+  if (tilt !== 0) {
+    // z = -0.5 sy / (1 / tan tilt + tan fov/2)
+    // x = -tan fov/2 * z - 0.5 sx
+    x0 += tanFovOver2 * 0.5 * sy / ((1 / tanTilt) + tanFovOver2);
+    // z = -0.5 sy / (1 / tan tilt + tan fov/2)
+    // x = tan fov/2 * z + 0.5 sx
+    x1 += -tanFovOver2 * 0.5 * sy / ((1 / tanTilt) + tanFovOver2);
+    // z = 0.5 sy / (1/tan tilt - tan fov/2)
+    // x = tan fov/2 * z + 0.5 sx
+    x2 += tanFovOver2 * 0.5 * sy / ((1 / tanTilt) - tanFovOver2);
+    // z = 0.5 sy / (1/tan tilt - tan fov/2)
+    // x = -tan fov/2 * z - 0.5 sx
+    x3 += -tanFovOver2 * 0.5 * sy / ((1 / tanTilt) - tanFovOver2);
+    y0 *= 1 / (cosTilt + tanFovOver2 * sinTilt);
+    y1 *= 1 / (cosTilt + tanFovOver2 * sinTilt);
+    y2 *= 1 / (cosTilt - tanFovOver2 * sinTilt);
+    y3 *= 1 / (cosTilt - tanFovOver2 * sinTilt);
+    // determine where the center goes after projective interpolation
+    ol.vec.Mat4.makeSquareToQuad(x0, y0, x1, y1, x2, y2, x3, y3, mat);
+    var vec = goog.vec.Vec4.createNumber();
+    goog.vec.Vec4.setFromValues(vec, 0.5, 0.5, 0.0, 1.0);
+    goog.vec.Mat4.multVec4(mat, vec, vec);
+    dy += -vec[1] / vec[3];
+  }
+
+  x0 += dx;
+  x1 += dx;
+  x2 += dx;
+  x3 += dx;
+
+  y0 += dy;
+  y1 += dy;
+  y2 += dy;
+  y3 += dy;
+
+  ol.vec.Mat4.makeSquareToQuad(x0, y0, x1, y1, x2, y2, x3, y3, mat);
+
+  //var x0 = -0.5 * (sx * cosRotation + sy * sinRotation) + dx;
+  //var x0 = 0.5 * sy * tanFovOver2 * sinTilt - 0.5 * sx + dx;
+  //var y0 = -0.5 * (sy * cosRotation - sx * sinRotation) + dy;
+  //var y0 = -0.5 * sy / (cosTilt + tanFovOver2 * sinTilt) + dy;
+  //var x1 = 0.5 * (sx * cosRotation - sy * sinRotation) + dx;
+  //var x1 = -0.5 * sy * tanFovOver2 * sinTilt + 0.5 * sx + dx;
+  //var y1 = -0.5 * (sy * cosRotation + sx * sinRotation) + dy;
+  //var y1 = -0.5 * sy / (cosTilt + tanFovOver2 * sinTilt) + dy;
+  //var x2 = 0.5 * (sx * cosRotation + sy * sinRotation) + dx;
+  //var x2 = 0.5 * sy * tanFovOver2 * sinTilt + 0.5 * sx + dx;
+  //var y2 = 0.5 * (sy * cosRotation - sx * sinRotation) + dy;
+  //var y2 = 0.5 * sy / (cosTilt - tanFovOver2 * sinTilt) + dy;
+  //var x3 = -0.5 * (sx * cosRotation - sy * sinRotation) + dx;
+  //var x3 = -0.5 * sy * tanFovOver2 * sinTilt - 0.5 * sx + dx;
+  //var y3 = 0.5 * (sy * cosRotation + sx * sinRotation) + dy;
+  //var y3 = 0.5 * sy / (cosTilt - tanFovOver2 * sinTilt) + dy;
 };

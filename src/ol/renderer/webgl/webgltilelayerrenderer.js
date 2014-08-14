@@ -137,6 +137,7 @@ ol.renderer.webgl.TileLayer.prototype.prepareFrame =
   } else {
     extent = frameState.extent;
   }
+  ol.extent.scaleFromCenter(extent, 2);
   var tileRange = tileGrid.getTileRangeForExtentAndResolution(
       extent, tileResolution);
 
@@ -303,7 +304,8 @@ ol.renderer.webgl.TileLayer.prototype.prepareFrame =
   this.updateLogos(frameState, tileSource);
 
   ol.vec.Mat4.makeTransformImage(framebufferExtent, frameState.size,
-      center, viewState.resolution, -viewState.rotation, this.texCoordMatrix);
+      center, viewState.resolution, -viewState.rotation,
+      viewState.tilt, viewState.fov, this.texCoordMatrix);
 
   return true;
 };

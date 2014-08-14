@@ -19,7 +19,8 @@ var map = new ol.Map({
   renderer: exampleNS.getRendererFromQueryString(),
   target: 'map',
   view: new ol.View({
-    center: [0, 0],
-    zoom: 2
+    center: [3075675.960662914, 534126.3600794973],
+    tilt: 40 * Math.PI / 180,
+    zoom: 5
   })
 });

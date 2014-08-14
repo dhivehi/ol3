@@ -231,13 +231,13 @@ ol.SIMPLIFY_TOLERANCE = 0.5;
 /**
  * @define {number} Maximum tilt angle (in radians) for a view.
  */
-ol.VIEW_MAX_TILT = Math.PI / 4;
+ol.VIEW_MAX_TILT = 0.7853981633974483;  // Math.PI / 4
 
 
 /**
- * @define {number} Minimum pixel distance from the eye to the screen.
+ * @define {number} Minimum field of view.
  */
-ol.VIEW_MIN_PERSPECTIVE = 500;
+ol.VIEW_MIN_FOV = 0.5235987755982988;  // Math.PI / 6
 
 
 /**
