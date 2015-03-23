@@ -35,12 +35,15 @@ ol.ImageTile = function(tileCoord, state, src, crossOrigin, tileLoadFunction) {
 
   /**
    * @private
+   * @type {?string}
+   */
+  this.crossOrigin_ = crossOrigin;
+
+  /**
+   * @private
    * @type {Image}
    */
-  this.image_ = new Image();
-  if (!goog.isNull(crossOrigin)) {
-    this.image_.crossOrigin = crossOrigin;
-  }
+  this.image_ = null;
 
   /**
    * @private
@@ -80,6 +83,7 @@ ol.ImageTile.prototype.disposeInternal = function() {
  * @api
  */
 ol.ImageTile.prototype.getImage = function(opt_context) {
+  goog.asserts.assert(!goog.isNull(this.image_));
   if (goog.isDef(opt_context)) {
     var image;
     var key = goog.getUid(opt_context);
@@ -124,14 +128,16 @@ ol.ImageTile.prototype.handleImageError_ = function() {
  * @private
  */
 ol.ImageTile.prototype.handleImageLoad_ = function() {
+  goog.asserts.assert(!goog.isNull(this.image_));
+  var image = this.image_;
   if (ol.LEGACY_IE_SUPPORT && ol.IS_LEGACY_IE) {
-    if (!goog.isDef(this.image_.naturalWidth)) {
-      this.image_.naturalWidth = this.image_.width;
-      this.image_.naturalHeight = this.image_.height;
+    if (!goog.isDef(image.naturalWidth)) {
+      image.naturalWidth = image.width;
+      image.naturalHeight = image.height;
     }
   }
 
-  if (this.image_.naturalWidth && this.image_.naturalHeight) {
+  if (image.naturalWidth && image.naturalHeight) {
     this.state = ol.TileState.LOADED;
   } else {
     this.state = ol.TileState.EMPTY;
@@ -146,13 +152,18 @@ ol.ImageTile.prototype.handleImageLoad_ = function() {
  */
 ol.ImageTile.prototype.load = function() {
   if (this.state == ol.TileState.IDLE) {
+    goog.asserts.assert(goog.isNull(this.image_));
+    var image = this.image_ = new Image();
+    if (!goog.isNull(this.crossOrigin_)) {
+      image.crossOrigin = this.crossOrigin_;
+    }
     this.state = ol.TileState.LOADING;
     this.changed();
     goog.asserts.assert(goog.isNull(this.imageListenerKeys_));
     this.imageListenerKeys_ = [
-      goog.events.listenOnce(this.image_, goog.events.EventType.ERROR,
+      goog.events.listenOnce(image, goog.events.EventType.ERROR,
           this.handleImageError_, false, this),
-      goog.events.listenOnce(this.image_, goog.events.EventType.LOAD,
+      goog.events.listenOnce(image, goog.events.EventType.LOAD,
           this.handleImageLoad_, false, this)
     ];
     this.tileLoadFunction_(this, this.src_);
