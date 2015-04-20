@@ -13,6 +13,9 @@
       "externs/tilejson.js",
       "externs/topojson.js"
     ],
+    "js": [
+      "src/ol/olx.js"
+    ],
     "define": [
       "goog.array.ASSUME_NATIVE_FUNCTIONS=true",
       "goog.dom.ASSUME_STANDARDS_MODE=true",
