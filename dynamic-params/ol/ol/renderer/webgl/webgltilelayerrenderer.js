@@ -270,8 +270,8 @@ ol.renderer.webgl.TileLayer.prototype.prepareFrame =
             continue;
           }
         }
-        if (!drawableTile(tile) && tile.next) {
-          tile = tile.next;
+        if (!drawableTile(tile) && tile.interimTile) {
+          tile = tile.interimTile;
         }
         goog.asserts.assert(tile);
         tileState = tile.getState();

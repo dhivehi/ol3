@@ -86,6 +86,10 @@ var tileGrid &#x3D; new ol.tilegrid.WMTS({
 
 var scalgoToken &#x3D; &#x27;CC5BF28A7D96B320C7DFBFD1236B5BEB&#x27;;
 
+// In this source the &quot;threshold&quot; dimension is specified as a &quot;dynamic&quot;
+// dimension. This means that when updateDimensions is called to change the
+// value of this dimension the &quot;old&quot; tiles are not invalidated, instead they&#x27;re
+// used as &quot;interim&quot; tiles while the new tiles are loading.
 var dynamicSource &#x3D; new ol.source.WMTS({
   url: &#x27;http://ts2.scalgo.com/global/wmts?token&#x3D;&#x27; + scalgoToken,
   layer: &#x27;hydrosheds:sea-levels&#x27;,
@@ -100,6 +104,7 @@ var dynamicSource &#x3D; new ol.source.WMTS({
   dynamicDimensions: [&#x27;threshold&#x27;]
 });
 
+// In this source &quot;threshold&quot; is not marked as a &quot;dynamic&quot; dimension.
 var staticSource &#x3D; new ol.source.WMTS({
   url: &#x27;http://ts2.scalgo.com/global/wmts?token&#x3D;&#x27; + scalgoToken,
   layer: &#x27;hydrosheds:sea-levels&#x27;,
@@ -154,7 +159,7 @@ var map &#x3D; new ol.Map({
 });
 
 var updateSourceDimension &#x3D; function(source, sliderVal) {
-  source.updateDimensions({threshold: sliderVal});
+  source.updateDimensions({&#x27;threshold&#x27;: sliderVal});
   document.getElementById(&#x27;theinfo&#x27;).innerHTML &#x3D; sliderVal + &#x27; meters.&#x27;;
 };
 
@@ -246,6 +251,10 @@ var tileGrid &#x3D; new ol.tilegrid.WMTS({
 
 var scalgoToken &#x3D; &#x27;CC5BF28A7D96B320C7DFBFD1236B5BEB&#x27;;
 
+// In this source the &quot;threshold&quot; dimension is specified as a &quot;dynamic&quot;
+// dimension. This means that when updateDimensions is called to change the
+// value of this dimension the &quot;old&quot; tiles are not invalidated, instead they&#x27;re
+// used as &quot;interim&quot; tiles while the new tiles are loading.
 var dynamicSource &#x3D; new ol.source.WMTS({
   url: &#x27;http://ts2.scalgo.com/global/wmts?token&#x3D;&#x27; + scalgoToken,
   layer: &#x27;hydrosheds:sea-levels&#x27;,
@@ -260,6 +269,7 @@ var dynamicSource &#x3D; new ol.source.WMTS({
   dynamicDimensions: [&#x27;threshold&#x27;]
 });
 
+// In this source &quot;threshold&quot; is not marked as a &quot;dynamic&quot; dimension.
 var staticSource &#x3D; new ol.source.WMTS({
   url: &#x27;http://ts2.scalgo.com/global/wmts?token&#x3D;&#x27; + scalgoToken,
   layer: &#x27;hydrosheds:sea-levels&#x27;,
@@ -314,7 +324,7 @@ var map &#x3D; new ol.Map({
 });
 
 var updateSourceDimension &#x3D; function(source, sliderVal) {
-  source.updateDimensions({threshold: sliderVal});
+  source.updateDimensions({&#x27;threshold&#x27;: sliderVal});
   document.getElementById(&#x27;theinfo&#x27;).innerHTML &#x3D; sliderVal + &#x27; meters.&#x27;;
 };
 

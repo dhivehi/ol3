@@ -143,8 +143,8 @@ ol.renderer.dom.TileLayer.prototype.prepareFrame =
   for (x = tileRange.minX; x <= tileRange.maxX; ++x) {
     for (y = tileRange.minY; y <= tileRange.maxY; ++y) {
       tile = tileSource.getTile(z, x, y, pixelRatio, projection);
-      if (!drawableTile(tile) && tile.next) {
-        tile = tile.next;
+      if (!drawableTile(tile) && tile.interimTile) {
+        tile = tile.interimTile;
       }
       goog.asserts.assert(tile);
       tileState = tile.getState();

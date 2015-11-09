@@ -248,20 +248,31 @@ ol.source.TileImage.prototype.getTileInternal =
   } else {
     tile = /** @type {!ol.Tile} */ (this.tileCache.get(tileCoordKey));
     if (tile.key != paramsKey) {
-      // the source's dynamic parameters changed, so we create a new tile
-      // and possibly "tile" or "tile.next" as our "interim" tile
-      var next = tile;
-      tile = this.createTile_(z, x, y, pixelRatio, projection, paramsKey);
-      if (next.getState() == ol.TileState.LOADED) {
-        tile.next = next;
-      } else if (next.next && next.next.getState() == ol.TileState.LOADED) {
-        tile.next = next.next;
+      // The source's dynamic params changed. If the tile has an interim tile
+      // and if we can use it then we use it. Otherwise we create a new tile.
+      // In both cases we attempt to assign an interim tile to the new tile.
+      var /** @type {ol.Tile} */ interimTile = tile;
+      if (tile.interimTile && tile.interimTile.key == paramsKey) {
+        goog.asserts.assert(tile.interimTile.getState() == ol.TileState.LOADED);
+        goog.asserts.assert(tile.interimTile.interimTile === null);
+        tile = tile.interimTile;
+        if (interimTile.getState() == ol.TileState.LOADED) {
+          tile.interimTile = interimTile;
+        }
+      } else {
+        tile = this.createTile_(z, x, y, pixelRatio, projection, paramsKey);
+        if (interimTile.getState() == ol.TileState.LOADED) {
+          tile.interimTile = interimTile;
+        } else if (interimTile.interimTile &&
+            interimTile.interimTile.getState() == ol.TileState.LOADED) {
+          tile.interimTile = interimTile.interimTile;
+          interimTile.interimTile = null;
+        }
       }
-      next.next = null;
+      if (tile.interimTile) {
+        tile.interimTile.interimTile = null;
+      }
       this.tileCache.replace(tileCoordKey, tile);
-    } else if (tile.getState() == ol.TileState.LOADED) {
-      // the tile is loaded, so it no longer needs an interim tile
-      tile.next = null;
     }
   }
   goog.asserts.assert(tile);

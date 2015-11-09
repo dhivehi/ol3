@@ -1,6 +1,6 @@
 // OpenLayers 3. See http://openlayers.org/
 // License: https://raw.githubusercontent.com/openlayers/ol3/master/LICENSE.md
-// Version: v3.10.1-268-gc6246d2
+// Version: v3.10.1-268-g1b62cf4
 
 (function (root, factory) {
   if (typeof exports === "object") {
@@ -36818,12 +36818,11 @@ ol.Tile = function(tileCoord, state) {
   this.state = state;
 
   /**
-   * The "interim" tile for this tile, i.e. the tile that may be used while
-   * this one is loading, for "smooth" transitions when changing dynamic
-   * parameters of a tile source.
+   * An "interim" tile for this tile. The interim tile may be used while this
+   * one is loading, for "smooth" transitions when changing dynamic params.
    * @type {ol.Tile}
    */
-  this.next = null;
+  this.interimTile = null;
 
   /**
    * @type {string}
@@ -73235,8 +73234,8 @@ ol.renderer.canvas.TileLayer.prototype.prepareFrame =
   for (x = tileRange.minX; x <= tileRange.maxX; ++x) {
     for (y = tileRange.minY; y <= tileRange.maxY; ++y) {
       tile = tileSource.getTile(z, x, y, pixelRatio, projection);
-      if (!drawableTile(tile) && tile.next) {
-        tile = tile.next;
+      if (!drawableTile(tile) && tile.interimTile) {
+        tile = tile.interimTile;
       }
       goog.asserts.assert(tile);
       if (drawableTile(tile)) {
@@ -75408,8 +75407,8 @@ ol.renderer.dom.TileLayer.prototype.prepareFrame =
   for (x = tileRange.minX; x <= tileRange.maxX; ++x) {
     for (y = tileRange.minY; y <= tileRange.maxY; ++y) {
       tile = tileSource.getTile(z, x, y, pixelRatio, projection);
-      if (!drawableTile(tile) && tile.next) {
-        tile = tile.next;
+      if (!drawableTile(tile) && tile.interimTile) {
+        tile = tile.interimTile;
       }
       goog.asserts.assert(tile);
       tileState = tile.getState();
@@ -81806,8 +81805,8 @@ ol.renderer.webgl.TileLayer.prototype.prepareFrame =
             continue;
           }
         }
-        if (!drawableTile(tile) && tile.next) {
-          tile = tile.next;
+        if (!drawableTile(tile) && tile.interimTile) {
+          tile = tile.interimTile;
         }
         goog.asserts.assert(tile);
         tileState = tile.getState();
@@ -108230,6 +108229,9 @@ ol.ImageTile.prototype.disposeInternal = function() {
   if (this.state == ol.TileState.LOADING) {
     this.unlistenImage_();
   }
+  if (this.interimTile) {
+    goog.dispose(this.interimTile);
+  }
   goog.base(this, 'disposeInternal');
 };
 
@@ -115638,20 +115640,31 @@ ol.source.TileImage.prototype.getTileInternal =
   } else {
     tile = /** @type {!ol.Tile} */ (this.tileCache.get(tileCoordKey));
     if (tile.key != paramsKey) {
-      // the source's dynamic parameters changed, so we create a new tile
-      // and possibly "tile" or "tile.next" as our "interim" tile
-      var next = tile;
-      tile = this.createTile_(z, x, y, pixelRatio, projection, paramsKey);
-      if (next.getState() == ol.TileState.LOADED) {
-        tile.next = next;
-      } else if (next.next && next.next.getState() == ol.TileState.LOADED) {
-        tile.next = next.next;
+      // The source's dynamic params changed. If the tile has an interim tile
+      // and if we can use it then we use it. Otherwise we create a new tile.
+      // In both cases we attempt to assign an interim tile to the new tile.
+      var /** @type {ol.Tile} */ interimTile = tile;
+      if (tile.interimTile && tile.interimTile.key == paramsKey) {
+        goog.asserts.assert(tile.interimTile.getState() == ol.TileState.LOADED);
+        goog.asserts.assert(tile.interimTile.interimTile === null);
+        tile = tile.interimTile;
+        if (interimTile.getState() == ol.TileState.LOADED) {
+          tile.interimTile = interimTile;
+        }
+      } else {
+        tile = this.createTile_(z, x, y, pixelRatio, projection, paramsKey);
+        if (interimTile.getState() == ol.TileState.LOADED) {
+          tile.interimTile = interimTile;
+        } else if (interimTile.interimTile &&
+            interimTile.interimTile.getState() == ol.TileState.LOADED) {
+          tile.interimTile = interimTile.interimTile;
+          interimTile.interimTile = null;
+        }
       }
-      next.next = null;
+      if (tile.interimTile) {
+        tile.interimTile.interimTile = null;
+      }
       this.tileCache.replace(tileCoordKey, tile);
-    } else if (tile.getState() == ol.TileState.LOADED) {
-      // the tile is loaded, so it no longer needs an interim tile
-      tile.next = null;
     }
   }
   goog.asserts.assert(tile);

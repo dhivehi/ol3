@@ -26,6 +26,10 @@ var tileGrid = new ol.tilegrid.WMTS({
 
 var scalgoToken = 'CC5BF28A7D96B320C7DFBFD1236B5BEB';
 
+// In this source the "threshold" dimension is specified as a "dynamic"
+// dimension. This means that when updateDimensions is called to change the
+// value of this dimension the "old" tiles are not invalidated, instead they're
+// used as "interim" tiles while the new tiles are loading.
 var dynamicSource = new ol.source.WMTS({
   url: 'http://ts2.scalgo.com/global/wmts?token=' + scalgoToken,
   layer: 'hydrosheds:sea-levels',
@@ -40,6 +44,7 @@ var dynamicSource = new ol.source.WMTS({
   dynamicDimensions: ['threshold']
 });
 
+// In this source "threshold" is not marked as a "dynamic" dimension.
 var staticSource = new ol.source.WMTS({
   url: 'http://ts2.scalgo.com/global/wmts?token=' + scalgoToken,
   layer: 'hydrosheds:sea-levels',
@@ -94,7 +99,7 @@ var map = new ol.Map({
 });
 
 var updateSourceDimension = function(source, sliderVal) {
-  source.updateDimensions({threshold: sliderVal});
+  source.updateDimensions({'threshold': sliderVal});
   document.getElementById('theinfo').innerHTML = sliderVal + ' meters.';
 };
 
