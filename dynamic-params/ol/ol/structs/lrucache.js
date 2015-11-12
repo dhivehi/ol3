@@ -231,10 +231,8 @@ ol.structs.LRUCache.prototype.pop = function() {
  * @param {T} value Value.
  */
 ol.structs.LRUCache.prototype.replace = function(key, value) {
-  var entry = this.entries_[key];
-  goog.asserts.assert(entry !== undefined, 'an entry exists for key %s', key);
-  this.get(key);
-  entry.value_ = value;
+  this.get(key);  // update `newest_`
+  this.entries_[key].value_ = value;
 };
 
 

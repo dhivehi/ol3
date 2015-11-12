@@ -168,7 +168,7 @@ ol.source.TileImage.prototype.getTileCacheForProjection = function(projection) {
  * @param {number} y Tile coordinate y.
  * @param {number} pixelRatio Pixel ratio.
  * @param {ol.proj.Projection} projection Projection.
- * @param {string} key Key.
+ * @param {string} key The key set on the tile.
  * @return {ol.Tile} Tile.
  * @private
  */
@@ -240,7 +240,7 @@ ol.source.TileImage.prototype.getTileInternal =
     function(z, x, y, pixelRatio, projection) {
   var /** @type {ol.Tile} */ tile = null;
   var tileCoordKey = this.getKeyZXY(z, x, y);
-  var paramsKey = this.getDynamicParamsKey();
+  var paramsKey = this.getKeyParams();
   if (!this.tileCache.containsKey(tileCoordKey)) {
     goog.asserts.assert(projection, 'argument projection is truthy');
     tile = this.createTile_(z, x, y, pixelRatio, projection, paramsKey);
@@ -248,9 +248,9 @@ ol.source.TileImage.prototype.getTileInternal =
   } else {
     tile = /** @type {!ol.Tile} */ (this.tileCache.get(tileCoordKey));
     if (tile.key != paramsKey) {
-      // The source's dynamic params changed. If the tile has an interim tile
-      // and if we can use it then we use it. Otherwise we create a new tile.
-      // In both cases we attempt to assign an interim tile to the new tile.
+      // The source's params changed. If the tile has an interim tile and if we
+      // can use it then we use it. Otherwise we create a new tile.  In both
+      // cases we attempt to assign an interim tile to the new tile.
       var /** @type {ol.Tile} */ interimTile = tile;
       if (tile.interimTile && tile.interimTile.key == paramsKey) {
         goog.asserts.assert(tile.interimTile.getState() == ol.TileState.LOADED);

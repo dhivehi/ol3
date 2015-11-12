@@ -46,12 +46,16 @@ ol.Tile = function(tileCoord, state) {
 
   /**
    * An "interim" tile for this tile. The interim tile may be used while this
-   * one is loading, for "smooth" transitions when changing dynamic params.
+   * one is loading, for "smooth" transitions when changing params/dimensions
+   * on the source.
    * @type {ol.Tile}
    */
   this.interimTile = null;
 
   /**
+   * A key assigned to the tile. This is used by the tile source to determine
+   * if this tile can effectively be used, or if a new tile should be created
+   * and this one be used as an interim tile for this new tile.
    * @type {string}
    */
   this.key = '';

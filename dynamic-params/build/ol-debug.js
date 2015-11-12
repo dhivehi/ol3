@@ -1,6 +1,6 @@
 // OpenLayers 3. See http://openlayers.org/
 // License: https://raw.githubusercontent.com/openlayers/ol3/master/LICENSE.md
-// Version: v3.10.1-268-g1b62cf4
+// Version: v3.10.1-268-gc3c8c4f
 
 (function (root, factory) {
   if (typeof exports === "object") {
@@ -36658,10 +36658,8 @@ ol.structs.LRUCache.prototype.pop = function() {
  * @param {T} value Value.
  */
 ol.structs.LRUCache.prototype.replace = function(key, value) {
-  var entry = this.entries_[key];
-  goog.asserts.assert(entry !== undefined, 'an entry exists for key %s', key);
-  this.get(key);
-  entry.value_ = value;
+  this.get(key);  // update `newest_`
+  this.entries_[key].value_ = value;
 };
 
 
@@ -36819,12 +36817,16 @@ ol.Tile = function(tileCoord, state) {
 
   /**
    * An "interim" tile for this tile. The interim tile may be used while this
-   * one is loading, for "smooth" transitions when changing dynamic params.
+   * one is loading, for "smooth" transitions when changing params/dimensions
+   * on the source.
    * @type {ol.Tile}
    */
   this.interimTile = null;
 
   /**
+   * A key assigned to the tile. This is used by the tile source to determine
+   * if this tile can effectively be used, or if a new tile should be created
+   * and this one be used as an interim tile for this new tile.
    * @type {string}
    */
   this.key = '';
@@ -37865,9 +37867,12 @@ ol.source.Tile.prototype.getGutter = function() {
 
 
 /**
- * @return {string} The dynamic parameters key.
+ * Return the "parameters" key, a string composed of the source's
+ * parameters/dimensions.
+ * @return {string} The parameters key.
+ * @protected
  */
-ol.source.Tile.prototype.getDynamicParamsKey = function() {
+ol.source.Tile.prototype.getKeyParams = function() {
   return '';
 };
 
@@ -73219,7 +73224,7 @@ ol.renderer.canvas.TileLayer.prototype.prepareFrame =
 
   var tmpExtent = ol.extent.createEmpty();
   var tmpTileRange = new ol.TileRange(0, 0, 0, 0);
-  var childTileRange, fullyLoaded, tile, tileState, x, y;
+  var childTileRange, fullyLoaded, tile, x, y;
   var drawableTile = (
       /**
        * @param {!ol.Tile} tile Tile.
@@ -73273,7 +73278,7 @@ ol.renderer.canvas.TileLayer.prototype.prepareFrame =
   var origin = ol.extent.getTopLeft(tileGrid.getTileCoordExtent(
       [z, canvasTileRange.minX, canvasTileRange.maxY],
       tmpExtent));
-  var currentZ, index, scale, tileCoordKey, tileExtent, tilesToDraw;
+  var currentZ, index, scale, tileCoordKey, tileExtent, tileState, tilesToDraw;
   var ix, iy, interimTileRange, maxX, maxY;
   var height, width;
   for (i = 0, ii = zs.length; i < ii; ++i) {
@@ -75392,22 +75397,15 @@ ol.renderer.dom.TileLayer.prototype.prepareFrame =
 
   var tmpExtent = ol.extent.createEmpty();
   var tmpTileRange = new ol.TileRange(0, 0, 0, 0);
-  var childTileRange, fullyLoaded, tile, tileState, x, y;
-  var drawableTile = (
-      /**
-       * @param {!ol.Tile} tile Tile.
-       * @return {boolean} Tile is selected.
-       */
-      function(tile) {
-        var tileState = tile.getState();
-        return tileState == ol.TileState.LOADED ||
-            tileState == ol.TileState.EMPTY ||
-            tileState == ol.TileState.ERROR && !useInterimTilesOnError;
-      });
+  var childTileRange, drawable, fullyLoaded, tile, tileState, x, y;
   for (x = tileRange.minX; x <= tileRange.maxX; ++x) {
     for (y = tileRange.minY; y <= tileRange.maxY; ++y) {
       tile = tileSource.getTile(z, x, y, pixelRatio, projection);
-      if (!drawableTile(tile) && tile.interimTile) {
+      tileState = tile.getState();
+      drawable = tileState == ol.TileState.LOADED ||
+          tileState == ol.TileState.EMPTY ||
+          tileState == ol.TileState.ERROR && !useInterimTilesOnError;
+      if (!drawable && tile.interimTile) {
         tile = tile.interimTile;
       }
       goog.asserts.assert(tile);
@@ -81782,18 +81780,8 @@ ol.renderer.webgl.TileLayer.prototype.prepareFrame =
     var allTilesLoaded = true;
     var tmpExtent = ol.extent.createEmpty();
     var tmpTileRange = new ol.TileRange(0, 0, 0, 0);
-    var childTileRange, fullyLoaded, tile, tileState, x, y, tileExtent;
-    var drawableTile = (
-        /**
-         * @param {!ol.Tile} tile Tile.
-         * @return {boolean} Tile is selected.
-         */
-        function(tile) {
-          var tileState = tile.getState();
-          return tileState == ol.TileState.LOADED ||
-              tileState == ol.TileState.EMPTY ||
-              tileState == ol.TileState.ERROR && !useInterimTilesOnError;
-        });
+    var childTileRange, drawable, fullyLoaded, tile, tileState;
+    var x, y, tileExtent;
     for (x = tileRange.minX; x <= tileRange.maxX; ++x) {
       for (y = tileRange.minY; y <= tileRange.maxY; ++y) {
 
@@ -81805,7 +81793,11 @@ ol.renderer.webgl.TileLayer.prototype.prepareFrame =
             continue;
           }
         }
-        if (!drawableTile(tile) && tile.interimTile) {
+        tileState = tile.getState();
+        drawable = tileState == ol.TileState.LOADED ||
+            tileState == ol.TileState.EMPTY ||
+            tileState == ol.TileState.ERROR && !useInterimTilesOnError;
+        if (!drawable && tile.interimTile) {
           tile = tile.interimTile;
         }
         goog.asserts.assert(tile);
@@ -115560,7 +115552,7 @@ ol.source.TileImage.prototype.getTileCacheForProjection = function(projection) {
  * @param {number} y Tile coordinate y.
  * @param {number} pixelRatio Pixel ratio.
  * @param {ol.proj.Projection} projection Projection.
- * @param {string} key Key.
+ * @param {string} key The key set on the tile.
  * @return {ol.Tile} Tile.
  * @private
  */
@@ -115632,7 +115624,7 @@ ol.source.TileImage.prototype.getTileInternal =
     function(z, x, y, pixelRatio, projection) {
   var /** @type {ol.Tile} */ tile = null;
   var tileCoordKey = this.getKeyZXY(z, x, y);
-  var paramsKey = this.getDynamicParamsKey();
+  var paramsKey = this.getKeyParams();
   if (!this.tileCache.containsKey(tileCoordKey)) {
     goog.asserts.assert(projection, 'argument projection is truthy');
     tile = this.createTile_(z, x, y, pixelRatio, projection, paramsKey);
@@ -115640,9 +115632,9 @@ ol.source.TileImage.prototype.getTileInternal =
   } else {
     tile = /** @type {!ol.Tile} */ (this.tileCache.get(tileCoordKey));
     if (tile.key != paramsKey) {
-      // The source's dynamic params changed. If the tile has an interim tile
-      // and if we can use it then we use it. Otherwise we create a new tile.
-      // In both cases we attempt to assign an interim tile to the new tile.
+      // The source's params changed. If the tile has an interim tile and if we
+      // can use it then we use it. Otherwise we create a new tile.  In both
+      // cases we attempt to assign an interim tile to the new tile.
       var /** @type {ol.Tile} */ interimTile = tile;
       if (tile.interimTile && tile.interimTile.key == paramsKey) {
         goog.asserts.assert(tile.interimTile.getState() == ol.TileState.LOADED);
@@ -119386,24 +119378,10 @@ ol.source.WMTS = function(options) {
 
   /**
    * @private
-   * @type {Array.<string>}
-   */
-  this.dynamicDimensions_ = options.dynamicDimensions !== undefined ?
-      options.dynamicDimensions : [];
-
-  /**
-   * @private
    * @type {string}
    */
-  this.staticDimensionsKey_ = '';
-
-  /**
-   * @private
-   * @type {string}
-   */
-  this.dynamicDimensionsKey_ = '';
-
-  this.resetDimensionsKeys_();
+  this.dimensionsKey_ = '';
+  this.resetDimensionsKey_();
 
   /**
    * @private
@@ -119547,14 +119525,6 @@ ol.source.WMTS.prototype.getDimensions = function() {
 
 
 /**
- * @inheritDoc
- */
-ol.source.WMTS.prototype.getDynamicParamsKey = function() {
-  return this.dynamicDimensionsKey_;
-};
-
-
-/**
  * Return the image format of the WMTS source.
  * @return {string} Format.
  * @api
@@ -119567,8 +119537,8 @@ ol.source.WMTS.prototype.getFormat = function() {
 /**
  * @inheritDoc
  */
-ol.source.WMTS.prototype.getKeyZXY = function(z, x, y) {
-  return this.staticDimensionsKey_ + goog.base(this, 'getKeyZXY', z, x, y);
+ol.source.WMTS.prototype.getKeyParams = function() {
+  return this.dimensionsKey_;
 };
 
 
@@ -119625,21 +119595,13 @@ ol.source.WMTS.prototype.getVersion = function() {
 /**
  * @private
  */
-ol.source.WMTS.prototype.resetDimensionsKeys_ = function() {
+ol.source.WMTS.prototype.resetDimensionsKey_ = function() {
   var i = 0;
-  var j = 0;
-  var dynamicDimensionsKey = [];
-  var staticDimensionsKey = [];
+  var res = [];
   for (var key in this.dimensions_) {
-    var part = key + '-' + this.dimensions_[key];
-    if (goog.array.contains(this.dynamicDimensions_, key)) {
-      dynamicDimensionsKey[i++] = part;
-    } else {
-      staticDimensionsKey[j++] = part;
-    }
+    res[i++] = key + '-' + this.dimensions_[key];
   }
-  this.dynamicDimensionsKey_ = dynamicDimensionsKey.join('/');
-  this.staticDimensionsKey_ = staticDimensionsKey.join('/');
+  this.dimensionsKey_ = res.join('/');
 };
 
 
@@ -119650,7 +119612,7 @@ ol.source.WMTS.prototype.resetDimensionsKeys_ = function() {
  */
 ol.source.WMTS.prototype.updateDimensions = function(dimensions) {
   goog.object.extend(this.dimensions_, dimensions);
-  this.resetDimensionsKeys_();
+  this.resetDimensionsKey_();
   this.changed();
 };
 

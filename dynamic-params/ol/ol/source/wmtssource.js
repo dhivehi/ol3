@@ -59,24 +59,10 @@ ol.source.WMTS = function(options) {
 
   /**
    * @private
-   * @type {Array.<string>}
-   */
-  this.dynamicDimensions_ = options.dynamicDimensions !== undefined ?
-      options.dynamicDimensions : [];
-
-  /**
-   * @private
    * @type {string}
    */
-  this.staticDimensionsKey_ = '';
-
-  /**
-   * @private
-   * @type {string}
-   */
-  this.dynamicDimensionsKey_ = '';
-
-  this.resetDimensionsKeys_();
+  this.dimensionsKey_ = '';
+  this.resetDimensionsKey_();
 
   /**
    * @private
@@ -220,14 +206,6 @@ ol.source.WMTS.prototype.getDimensions = function() {
 
 
 /**
- * @inheritDoc
- */
-ol.source.WMTS.prototype.getDynamicParamsKey = function() {
-  return this.dynamicDimensionsKey_;
-};
-
-
-/**
  * Return the image format of the WMTS source.
  * @return {string} Format.
  * @api
@@ -240,8 +218,8 @@ ol.source.WMTS.prototype.getFormat = function() {
 /**
  * @inheritDoc
  */
-ol.source.WMTS.prototype.getKeyZXY = function(z, x, y) {
-  return this.staticDimensionsKey_ + goog.base(this, 'getKeyZXY', z, x, y);
+ol.source.WMTS.prototype.getKeyParams = function() {
+  return this.dimensionsKey_;
 };
 
 
@@ -298,21 +276,13 @@ ol.source.WMTS.prototype.getVersion = function() {
 /**
  * @private
  */
-ol.source.WMTS.prototype.resetDimensionsKeys_ = function() {
+ol.source.WMTS.prototype.resetDimensionsKey_ = function() {
   var i = 0;
-  var j = 0;
-  var dynamicDimensionsKey = [];
-  var staticDimensionsKey = [];
+  var res = [];
   for (var key in this.dimensions_) {
-    var part = key + '-' + this.dimensions_[key];
-    if (goog.array.contains(this.dynamicDimensions_, key)) {
-      dynamicDimensionsKey[i++] = part;
-    } else {
-      staticDimensionsKey[j++] = part;
-    }
+    res[i++] = key + '-' + this.dimensions_[key];
   }
-  this.dynamicDimensionsKey_ = dynamicDimensionsKey.join('/');
-  this.staticDimensionsKey_ = staticDimensionsKey.join('/');
+  this.dimensionsKey_ = res.join('/');
 };
 
 
@@ -323,7 +293,7 @@ ol.source.WMTS.prototype.resetDimensionsKeys_ = function() {
  */
 ol.source.WMTS.prototype.updateDimensions = function(dimensions) {
   goog.object.extend(this.dimensions_, dimensions);
-  this.resetDimensionsKeys_();
+  this.resetDimensionsKey_();
   this.changed();
 };
 

@@ -157,9 +157,12 @@ ol.source.Tile.prototype.getGutter = function() {
 
 
 /**
- * @return {string} The dynamic parameters key.
+ * Return the "parameters" key, a string composed of the source's
+ * parameters/dimensions.
+ * @return {string} The parameters key.
+ * @protected
  */
-ol.source.Tile.prototype.getDynamicParamsKey = function() {
+ol.source.Tile.prototype.getKeyParams = function() {
   return '';
 };
 
